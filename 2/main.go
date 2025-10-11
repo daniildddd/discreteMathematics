@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 )
@@ -12,9 +13,7 @@ func main() {
 	fmt.Scan(&m)
 
 	// k может быть равно только (2^m - 1) - m, где m - количество проверочных битов
-	var k int
-	fmt.Print("Введите размер информационной комбинации (k): ")
-	fmt.Scan(&k)
+	k := int(math.Pow(2, float64(m)) - 1 - float64(m))
 
 	infoBits := generateCombination(k)
 	table := generateHammingTable(m)
@@ -76,6 +75,7 @@ func generateCombination(size int) []int {
 	return combination
 }
 
+// Создает таблицу проверочных битов Хэмминга
 func generateHammingTable(m int) [][]int {
 	n := 1<<m - 1
 	table := make([][]int, m)
