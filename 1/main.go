@@ -12,15 +12,17 @@ import (
 	"unicode/utf8"
 )
 
+// хранит информацию о каждом символе/биграмме для анализа и кодирования.
 type Symbol struct {
-	Char  string
-	Prob  float64
-	Code  string
-	Count int
+	Char  string  // Символ или биграмма
+	Prob  float64 // Вероятность появления
+	Code  string  // Двоичный код символа
+	Count int     // Количество в тексте
 }
 
 type ByProb []Symbol
 
+// реализуем интерфйес чтоб можно было сортировать массив наших данных с помощью внутренней функции
 func (a ByProb) Len() int           { return len(a) }
 func (a ByProb) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByProb) Less(i, j int) bool { return a[i].Prob > a[j].Prob }
@@ -37,8 +39,11 @@ func main() {
 	alphabet := makeAlphabet(text)
 	writeAlphabetToCSV(alphabet, "alphabet.csv")
 
+	// считаем энтропию(среднее количество информации на символ)
 	entropy := calculateEntropy(alphabet)
+	//Длина равномерного кода(минимальное количество бит для кодирования всех символов)
 	uniformLength := math.Ceil(math.Log2(float64(len(alphabet))))
+	//вычисляем избыточность
 	redundancy := uniformLength - entropy
 
 	fmt.Printf("Энтропия: %.4f бит/символ\n", entropy)
@@ -60,7 +65,7 @@ func main() {
 	decoded := decodeText(encoded, shannonFanoCodes)
 	saveToFile(decoded, "decoded.txt")
 
-	// Биграммы
+	// Биграммы(по сути повторяем все те же действия что и выше только для биограм, биограма - 2 идущих подряд символа)
 	bigramAlphabet := makeBigramAlphabet(text)
 	bigramShannonFano := generateShannonFanoCodes(bigramAlphabet)
 	writeCodesToCSV(bigramShannonFano, "bigram_shannon_fano_codes.csv")
@@ -73,6 +78,12 @@ func main() {
 }
 
 // Алфавит одиночных символов
+//
+// # Подсчитывает количество каждого символа
+//
+// # Вычисляет вероятности появления
+//
+// Сортирует по убыванию вероятности
 func makeAlphabet(text string) []Symbol {
 	counts := make(map[string]int)
 	total := 0
@@ -180,6 +191,7 @@ func escapeSpecialChars(s string) string {
 	).Replace(s)
 }
 
+// вычисляет энтропию
 func calculateEntropy(alphabet []Symbol) float64 {
 	entropy := 0.0
 	for _, s := range alphabet {
@@ -190,7 +202,9 @@ func calculateEntropy(alphabet []Symbol) float64 {
 	return entropy
 }
 
-// Shannon-Fano
+// кодирование Шеннона-Фано
+//
+// рекурсивно делит символы на две группы с примерно равными вероятностями, левой ветке присваиваем 0, правой ветке 1
 func generateShannonFanoCodes(alphabet []Symbol) map[string]string {
 	codes := make(map[string]string)
 	if len(alphabet) == 0 {
@@ -228,7 +242,6 @@ func findSplitIndex(symbols []Symbol) int {
 	return len(symbols)
 }
 
-// Huffman
 func generateHuffmanCodes(alphabet []Symbol) map[string]string {
 	type Node struct {
 		Symbols []Symbol
